@@ -1,0 +1,25 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: omnirag-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_DB: omnirag
+      POSTGRES_USER: omnirag
+      POSTGRES_PASSWORD: omnirag
+
+    ports:
+      - "55433:5432"
+
+    volumes:
+      - omnirag_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U omnirag -d omnirag"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  omnirag_postgres_data:
