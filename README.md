@@ -1,76 +1,144 @@
 # OmniRAG
 
-**Enterprise AI Knowledge Platform**
+<p align="center">
+  <strong>Enterprise AI Knowledge Platform</strong><br>
+  <sub>Document ingestion • Vector retrieval • RAG • Enterprise knowledge</sub>
+</p>
 
-OmniRAG is a backend-first Retrieval-Augmented Generation (RAG) platform for ingesting enterprise knowledge, extracting document content, chunking it into retrieval-ready units, and preparing the knowledge layer for semantic search and AI-powered question answering.
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white" alt="FastAPI">
+  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/pgvector-5E35B1?style=flat-square&logo=postgresql&logoColor=white" alt="pgvector">
+  <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white" alt="SQLAlchemy">
+  <img src="https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker">
+</p>
 
-> **Status:** Active development — core workspace, document upload, PDF extraction, chunking, PostgreSQL persistence, and pgvector-ready data modeling are implemented. Retrieval, embeddings, generation, authentication, and production deployment are being built next.
+OmniRAG is a backend-first Retrieval-Augmented Generation platform for turning enterprise documents into searchable, retrieval-ready knowledge. It provides workspace isolation, document ingestion, content extraction, deterministic chunking, PostgreSQL persistence, and a pgvector-ready data layer for semantic retrieval.
 
-## What OmniRAG Does
+> **Project status:** Active development. The ingestion foundation is implemented; embeddings, vector retrieval, RAG generation, authentication, observability, and production deployment are next.
 
-OmniRAG is designed around a production-style ingestion pipeline:
+---
+
+## Architecture
 
 ```text
-Document Upload
-      ↓
-Workspace Validation
-      ↓
-File Validation + SHA-256 Deduplication
-      ↓
-Persistent File Storage
-      ↓
-PDF Text Extraction
-      ↓
-Text Chunking
-      ↓
-PostgreSQL Chunk Persistence
-      ↓
-Vector Embeddings
-      ↓
-Semantic Retrieval
-      ↓
-RAG Answer Generation
+                    OmniRAG Knowledge Pipeline
+
+  ┌──────────────┐
+  │ PDF / CSV    │
+  │ Documents    │
+  └──────┬───────┘
+         │
+         ▼
+  ┌──────────────────────┐
+  │ Workspace Validation │
+  │ File Validation      │
+  │ SHA-256 Deduplication│
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ Persistent Storage    │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ Document Extraction  │
+  │ PDF → Structured Text│
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ Text Chunking        │
+  │ Size + Overlap        │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ PostgreSQL           │
+  │ document_chunks      │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ Embedding Generation │
+  │       NEXT           │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ pgvector Retrieval   │
+  │       NEXT           │
+  └──────────┬───────────┘
+             │
+             ▼
+  ┌──────────────────────┐
+  │ LLM + RAG Response   │
+  │       NEXT           │
+  └──────────────────────┘
 ```
 
-## Current Features
+## What Is Implemented
 
-- FastAPI REST API with OpenAPI/Swagger documentation
-- Workspace management
-- PDF and CSV document upload foundation
-- Workspace-scoped document storage
-- SHA-256 document checksums for duplicate detection
-- PostgreSQL persistence with SQLAlchemy
-- Document lifecycle states: `uploaded`, `processing`, `processed`, `indexed`, `failed`
-- PDF text extraction with page-level output
-- Configurable text chunking with overlap support
-- Persistent `document_chunks` table
-- pgvector-compatible `384` dimensional embedding column
-- Docker Compose development environment
-- Health endpoint for backend monitoring
+- FastAPI REST API with OpenAPI / Swagger
+- Workspace creation and retrieval
+- Workspace-scoped document uploads
+- PDF and CSV upload foundation
+- SHA-256 duplicate detection
+- Persistent local document storage
+- PostgreSQL + SQLAlchemy persistence
+- Document processing lifecycle states
+- Page-level PDF text extraction
+- Configurable text chunking with overlap
+- Persistent `document_chunks` model
+- `Vector(384)` embedding field prepared for pgvector
+- Docker-based PostgreSQL development environment
+- Health endpoint
+
+## Technology Stack
+
+| Layer | Technology | Role |
+|---|---|---|
+| API | **FastAPI** | REST API and OpenAPI documentation |
+| Runtime | **Python 3.12+** | Application runtime |
+| Server | **Uvicorn** | ASGI application server |
+| Validation | **Pydantic** | Request/configuration validation |
+| ORM | **SQLAlchemy** | Database models and persistence |
+| Database | **PostgreSQL** | Metadata and document knowledge storage |
+| Vector DB | **pgvector** | Vector embeddings and similarity search |
+| PDF | **PyPDF** | PDF text extraction |
+| Storage | **Local filesystem** | Original document persistence during development |
+| Containers | **Docker Compose** | Local infrastructure |
+
+<p align="center">
+  <img src="https://img.shields.io/badge/API-FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white">
+  <img src="https://img.shields.io/badge/DB-PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white">
+  <img src="https://img.shields.io/badge/Vector-pgvector-5E35B1?style=for-the-badge&logo=postgresql&logoColor=white">
+  <img src="https://img.shields.io/badge/Infra-Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white">
+</p>
 
 ## API
 
-When the backend is running locally:
-
-- Swagger UI: `http://127.0.0.1:8200/docs`
-- OpenAPI JSON: `http://127.0.0.1:8200/openapi.json`
-- Health: `http://127.0.0.1:8200/health`
-
-### Workspace Endpoints
+Local development endpoints:
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| GET | `/workspaces` | List workspaces |
-| POST | `/workspaces` | Create workspace |
-| GET | `/workspaces/{workspace_id}` | Get workspace |
+| `GET` | `/health` | Backend health check |
+| `GET` | `/workspaces` | List workspaces |
+| `POST` | `/workspaces` | Create workspace |
+| `GET` | `/workspaces/{workspace_id}` | Get workspace |
+| `POST` | `/workspaces/{workspace_id}/documents` | Upload document |
 
-### Document Endpoints
+Swagger UI:
 
-| Method | Endpoint | Purpose |
-|---|---|---|
-| POST | `/workspaces/{workspace_id}/documents` | Upload a document |
+`http://127.0.0.1:8200/docs`
 
-Example upload with cURL:
+OpenAPI:
+
+`http://127.0.0.1:8200/openapi.json`
+
+### Upload Example
 
 ```bash
 curl -X POST \
@@ -79,7 +147,7 @@ curl -X POST \
   -F "file=@attention-is-all-you-need.pdf;type=application/pdf"
 ```
 
-## Architecture
+## Project Structure
 
 ```text
 OmniRAG/
@@ -93,9 +161,9 @@ OmniRAG/
 │   │   │   ├── config.py
 │   │   │   └── database.py
 │   │   ├── models/
+│   │   │   ├── workspace.py
 │   │   │   ├── document.py
-│   │   │   ├── chunk.py
-│   │   │   └── workspace.py
+│   │   │   └── chunk.py
 │   │   ├── schemas/
 │   │   └── services/
 │   │       └── ingestion/
@@ -107,42 +175,19 @@ OmniRAG/
 │   └── storage/
 ├── docker-compose.yml
 ├── requirements.txt
+├── .gitignore
 └── README.md
 ```
 
-## Tech Stack
-
-**Backend**
-- Python
-- FastAPI
-- Uvicorn
-- SQLAlchemy
-- Pydantic / pydantic-settings
-
-**Database**
-- PostgreSQL
-- pgvector
-
-**Document Processing**
-- PyPDF-based PDF extraction
-- Custom text chunking
-- SHA-256 checksums
-
-**Infrastructure**
-- Docker
-- Docker Compose
-
-## Database Model
-
-The core knowledge model currently includes:
+## Data Model
 
 ### Workspace
 
-Logical tenant/container for enterprise knowledge.
+Tenant-like logical boundary for enterprise knowledge.
 
 ### Document
 
-Stores document metadata including:
+Stores document metadata:
 
 - Workspace ID
 - Filename
@@ -153,7 +198,7 @@ Stores document metadata including:
 - SHA-256 checksum
 - Processing status
 - Error information
-- Creation/update timestamps
+- Timestamps
 
 ### DocumentChunk
 
@@ -161,23 +206,39 @@ Stores retrieval-ready text units:
 
 - Document ID
 - Chunk index
-- Chunk text
+- Text
 - Character count
-- Vector embedding (`Vector(384)`)
+- `Vector(384)` embedding column
 - Creation timestamp
+
+## Document Lifecycle
+
+```text
+uploaded
+   ↓
+processing
+   ↓
+processed
+   ↓
+indexed
+```
+
+Failures transition into:
+
+```text
+failed
+```
 
 ## Local Development
 
-### 1. Clone the repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/deekshitaa1/OmniRAG.git
 cd OmniRAG
 ```
 
-### 2. Create a virtual environment
-
-Windows PowerShell:
+### 2. Create virtual environment
 
 ```powershell
 cd backend
@@ -191,7 +252,7 @@ python -m venv .venv
 pip install -r ..\requirements.txt
 ```
 
-### 4. Configure environment variables
+### 4. Configure environment
 
 Create `backend/.env`:
 
@@ -201,23 +262,23 @@ ENVIRONMENT=development
 DATABASE_URL=postgresql+psycopg://omnirag:omnirag@localhost:55433/omnirag
 ```
 
-Do not commit `.env` or credentials.
+Keep `.env` out of Git.
 
 ### 5. Start PostgreSQL
 
 From the repository root:
 
-```bash
+```powershell
 docker compose up -d
 ```
 
-Verify the database container:
+Verify:
 
-```bash
+```powershell
 docker ps
 ```
 
-### 6. Start the API
+### 6. Start OmniRAG
 
 From `backend/`:
 
@@ -225,17 +286,15 @@ From `backend/`:
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8200
 ```
 
-Open:
+Then open:
 
 ```text
 http://127.0.0.1:8200/docs
 ```
 
-## Ingestion Example
+## Ingestion Test
 
-The current ingestion workflow can process a PDF into structured pages and chunks.
-
-Example:
+The current pipeline can extract a PDF and split it into chunks:
 
 ```python
 from app.services.ingestion.extractors.pdf import extract_pdf_text
@@ -261,55 +320,57 @@ print("Chunks:", len(chunks))
 - [x] Persistent document storage
 - [x] PDF extraction
 - [x] Text chunking
-- [x] Chunk database model
-- [x] pgvector-ready embedding column
+- [x] Chunk persistence model
+- [x] pgvector-ready schema
 
 ### Phase 2 — Retrieval Engine
 
 - [ ] Embedding generation service
 - [ ] Batch embedding pipeline
 - [ ] Vector persistence
-- [ ] Similarity search
+- [ ] Cosine / similarity search
 - [ ] Top-k retrieval
 - [ ] Metadata filtering
 - [ ] Hybrid keyword + vector retrieval
 
-### Phase 3 — RAG Layer
+### Phase 3 — RAG Engine
 
 - [ ] LLM provider abstraction
 - [ ] Retrieval-augmented prompt construction
-- [ ] Context window management
+- [ ] Context-window management
 - [ ] Source citations
 - [ ] Streaming responses
-- [ ] Conversation/session management
+- [ ] Conversation management
 
 ### Phase 4 — Enterprise Platform
 
-- [ ] Authentication and authorization
+- [ ] Authentication / authorization
 - [ ] Multi-tenant isolation
-- [ ] Role-based access control
+- [ ] RBAC
 - [ ] Background ingestion workers
-- [ ] Redis-based task queue
-- [ ] Observability and structured logging
+- [ ] Redis task queue
+- [ ] Structured logging
+- [ ] Metrics and tracing
 - [ ] Rate limiting
 - [ ] API versioning
 - [ ] Production deployment
 
-## Engineering Goals
+## Engineering Principles
 
-OmniRAG is being developed with a focus on:
+OmniRAG is being built around production-oriented backend principles:
 
 - Modular service boundaries
-- Strong data isolation between workspaces
-- Idempotent document ingestion
+- Workspace-level data isolation
 - Deterministic document hashing
-- Reliable ingestion state transitions
+- Idempotent ingestion
+- Explicit processing states
+- Persistent source metadata
 - Vector-search scalability
 - Testability
-- Production-oriented API design
-- Clear separation between ingestion, retrieval, and generation
+- Separation of ingestion, retrieval, and generation
+- API-first architecture
 
-## Security Notes
+## Security
 
 Never commit:
 
@@ -317,14 +378,17 @@ Never commit:
 - API keys
 - Database passwords
 - Private certificates
-- Local virtual environments
+- `.venv/`
 - Uploaded enterprise documents
+- Local caches or generated artifacts
 
-The repository `.gitignore` excludes local environments, secrets, caches, and local document storage.
+The repository `.gitignore` excludes development environments, secrets, caches, and local document storage.
 
-## Project Status
+## Status
 
-OmniRAG is currently in the **backend ingestion and knowledge-indexing phase**. The foundation is operational; the next major milestone is connecting the stored chunks to an embedding model and implementing vector retrieval for end-to-end RAG.
+**Current milestone: Backend ingestion foundation complete.**
+
+The next major milestone is **embedding generation → pgvector similarity search → grounded RAG answers**.
 
 ## Author
 
@@ -334,4 +398,4 @@ GitHub: https://github.com/deekshitaa1
 
 ---
 
-Built with Python, FastAPI, PostgreSQL, and vector search technologies.
+<p align="center"><sub>Built with Python • FastAPI • PostgreSQL • pgvector • Docker</sub></p>
